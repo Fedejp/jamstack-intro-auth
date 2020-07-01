@@ -1,29 +1,38 @@
-import React, {useEffect} from 'react'
-import Layout from '../components/layout'
-import {navigate } from 'gatsby'
-import Profile from '../components/profile'
-import {Router} from '@reach/router'
-import RouteBase from '../components/route-base'
-import RouteSecret from '../components/route-secret'
-import RouteLogin from '../components/route-login'
+import React, { useEffect, useState } from 'react';
+import { Router } from '@reach/router';
+import { navigate } from 'gatsby';
+import IdentityModal from 'react-netlify-identity-widget';
+import Layout from '../components/layout';
+import Profile from '../components/profile';
+import PrivateRoute from '../components/private-route';
+import RouteLogin from '../components/route-login';
+import RouteBase from '../components/route-base';
+import RouteSecret from '../components/route-secret';
 
-const Dashboard = ( { location }) => {
-    useEffect(() => {
-        if (location.pathname.match(/^\/dashboard\/?$/)) {
-            navigate('dashboard/login', {replace: true}) //replace the routing history to prevent loops
-        }
-    }, []); //any change on the elements on this array will dispatch the useEffect method
+const Dashboard = ({ location }) => {
+  const [isVisible, setVisibility] = useState(false);
+  const showModal = () => setVisibility(true);
 
-    return (
-        <Layout>
-            <Profile></Profile>
-            <Router basepath="/dashboard">
-                <RouteBase path="/base"/>
-                <RouteSecret path="/secret" />
-                <RouteLogin path="/login" />
-            </Router>
-            <p>TODO: create a dashboard</p>
-        </Layout>
-    );
+  useEffect(() => {
+    if (location.pathname.match(/^\/dashboard\/?$/)) {
+      navigate('/dashboard/login', { replace: true });
+    }
+  }, [location.pathname]);
+
+  return (
+    <Layout>
+      <Profile showModal={showModal} />
+      <Router>
+        <RouteLogin path="/dashboard/login" showModal={showModal} />
+        <PrivateRoute path="/dashboard/secret" component={RouteSecret} />
+        <PrivateRoute path="/dashboard/base" component={RouteBase} />
+      </Router>
+      <IdentityModal
+        showDialog={isVisible}
+        onCloseDialog={() => setVisibility(false)}
+      />
+    </Layout>
+  );
 };
-export default Dashboard
+
+export default Dashboard;
